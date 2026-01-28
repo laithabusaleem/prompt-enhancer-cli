@@ -57,17 +57,22 @@ def main():
     is_flag=True,
     help="Output results as JSON"
 )
-def enhance(prompt: str, embeddings: bool, structured: bool, json_output: bool):
+@click.option(
+    "--llm", "-l",
+    type=click.Choice(['openai', 'mistral', 'google', 'auto'], case_sensitive=False),
+    help="Use LLM for enhancement (requires API key)"
+)
+def enhance(prompt: str, embeddings: bool, structured: bool, json_output: bool, llm: Optional[str]):
     """
     Enhance a prompt with structure and clarity.
     
     PROMPT: The prompt text to enhance (use quotes for multi-word prompts)
     
     Example:
-        prompt-enhancer enhance "Write a Python function to sort a list"
+        prompt-enhancer enhance "Write a function" --llm openai
     """
     try:
-        enhancer = PromptEnhancer(use_embeddings=embeddings)
+        enhancer = PromptEnhancer(use_embeddings=embeddings, llm_provider=llm)
         result = enhancer.enhance(prompt, add_structure=structured)
         
         if json_output:

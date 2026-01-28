@@ -139,16 +139,23 @@ Requirements:
 {constraints}""",
     }
     
-    def __init__(self, use_embeddings: bool = False):
+    def __init__(self, use_embeddings: bool = False, llm_provider: str = None):
         """
         Initialize the prompt enhancer.
         
         Args:
             use_embeddings: Whether to use sentence embeddings for better analysis.
+            llm_provider: 'openai', 'mistral', or None to use template-based enhancement.
         """
         self.parser = PromptParser(use_embeddings=use_embeddings)
         self.classifier = PromptClassifier(use_embeddings=use_embeddings)
         self.use_embeddings = use_embeddings
+        self.llm_provider = llm_provider
+        self.llm_client = None
+        
+        if llm_provider:
+             from prompt_enhancer.llm import LLMClient
+             self.llm_client = LLMClient(provider=llm_provider)
     
     def enhance(self, prompt: str, add_structure: bool = True) -> EnhancedPrompt:
         """
@@ -170,7 +177,22 @@ Requirements:
         # Track enhancement notes
         notes = []
         
-        if add_structure:
+        # Use LLM if configured
+        if self.llm_client:
+            try:
+                context_data = {
+                    "parsed": parsed.to_dict(),
+                    "classification": classification.to_dict()
+                }
+                enhanced = self.llm_client.generate_enhancement(prompt, context_data)
+                notes.append(f"Enhanced using LLM provider: {self.llm_client.provider.value}")
+            except Exception as e:
+                notes.append(f"LLM enhancement failed ({str(e)}), falling back to template")
+                if add_structure:
+                    enhanced = self._apply_template(parsed, classification, notes)
+                else:
+                    enhanced = self._enhance_inline(parsed, classification, notes)
+        elif add_structure:
             enhanced = self._apply_template(parsed, classification, notes)
         else:
             enhanced = self._enhance_inline(parsed, classification, notes)
