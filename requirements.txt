@@ -1,0 +1,5 @@
+click>=8.1.7
+sentence-transformers>=2.2.2
+nltk>=3.8.1
+python-dotenv>=1.0.0
+rich>=13.7.0

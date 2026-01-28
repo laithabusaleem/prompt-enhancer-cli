@@ -1,3 +1,0 @@
-Instructions: You will be presented with an audit question and four options A through D. Your task is to select the option that is closest to the correctanswer. For each question you must select one of the following answers:  'A', 'B', 'C', 'D'. Do not explain. Do not include the number in your response.
-Which of the following is typically not included in the inquiry letter sent an unfavorable outcome. B. A disclaimer regarding the likelihood of settlement of pendinglitigation. C. An estimate of the range of potential loss. D. A listing of  pending or threatened litigation, claims, or assessments. For each question  you must select one of the following answers: 'A', 'B', 'C', 'D'.
-
