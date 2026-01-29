@@ -62,7 +62,12 @@ def main():
     type=click.Choice(['openai', 'mistral', 'google', 'auto'], case_sensitive=False),
     help="Use LLM for enhancement (requires API key)"
 )
-def enhance(prompt: str, embeddings: bool, structured: bool, json_output: bool, llm: Optional[str]):
+@click.option(
+    "--config", "-c",
+    type=click.Path(exists=True),
+    help="Path to custom template configuration file"
+)
+def enhance(prompt: str, embeddings: bool, structured: bool, json_output: bool, llm: Optional[str], config: Optional[str]):
     """
     Enhance a prompt with structure and clarity.
     
@@ -72,7 +77,7 @@ def enhance(prompt: str, embeddings: bool, structured: bool, json_output: bool, 
         prompt-enhancer enhance "Write a function" --llm openai
     """
     try:
-        enhancer = PromptEnhancer(use_embeddings=embeddings, llm_provider=llm)
+        enhancer = PromptEnhancer(use_embeddings=embeddings, llm_provider=llm, config_path=config)
         result = enhancer.enhance(prompt, add_structure=structured)
         
         if json_output:
@@ -105,6 +110,26 @@ def enhance(prompt: str, embeddings: bool, structured: bool, json_output: bool, 
     except Exception as e:
         print_error(str(e))
         sys.exit(1)
+
+
+@main.command()
+def init_config():
+    """
+    Initialize default configuration file.
+    
+    Creates a 'templates.yaml' file in ~/.prompt-enhancer/
+    which you can edit to customize enhancement templates.
+    """
+    try:
+        from prompt_enhancer.config import TemplateManager
+        manager = TemplateManager()
+        path = manager.save_default_config()
+        print_success(f"Configuration initialized at: {path}")
+        console.print("You can now edit this file to customize your templates.")
+    except Exception as e:
+        print_error(str(e))
+        sys.exit(1)
+
 
 
 @main.command()

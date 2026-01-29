@@ -37,121 +37,26 @@ class PromptEnhancer:
     Combines parsing and classification to create improved prompts.
     """
     
-    # Enhancement templates for different prompt types
-    ENHANCEMENT_TEMPLATES = {
-        PromptType.INSTRUCTION: """Task: {intent}
-
-Context:
-{context}
-
-Requirements:
-{constraints}
-
-Please provide a clear and structured response.""",
-
-        PromptType.QUESTION: """Question: {intent}
-
-Background Context:
-{context}
-
-Please provide a comprehensive answer that addresses all aspects of the question.""",
-
-        PromptType.CREATIVE: """Creative Writing Task: {intent}
-
-Setting/Context:
-{context}
-
-Guidelines:
-{constraints}
-
-Be imaginative and engaging in your response.""",
-
-        PromptType.ANALYSIS: """Analysis Task: {intent}
-
-Subject Context:
-{context}
-
-Analysis Requirements:
-{constraints}
-
-Provide a thorough and objective analysis.""",
-
-        PromptType.CODE: """Programming Task: {intent}
-
-Technical Context:
-{context}
-
-Technical Requirements:
-{constraints}
-
-Provide clean, well-documented code with explanations.""",
-
-        PromptType.TRANSLATION: """Translation Task: {intent}
-
-Source Context:
-{context}
-
-Translation Guidelines:
-{constraints}
-
-Provide an accurate translation that preserves meaning and tone.""",
-
-        PromptType.SUMMARIZATION: """Summarization Task: {intent}
-
-Content Context:
-{context}
-
-Summary Requirements:
-{constraints}
-
-Provide a concise yet comprehensive summary.""",
-
-        PromptType.EXTRACTION: """Information Extraction Task: {intent}
-
-Data Context:
-{context}
-
-Extraction Requirements:
-{constraints}
-
-Extract and organize the requested information clearly.""",
-
-        PromptType.CLASSIFICATION: """Classification Task: {intent}
-
-Classification Context:
-{context}
-
-Classification Criteria:
-{constraints}
-
-Provide clear categorization with justification.""",
-
-        PromptType.CONVERSATION: """{intent}
-
-{context}""",
-
-        PromptType.UNKNOWN: """Request: {intent}
-
-Additional Context:
-{context}
-
-Requirements:
-{constraints}""",
-    }
     
-    def __init__(self, use_embeddings: bool = False, llm_provider: str = None):
+
+    
+    def __init__(self, use_embeddings: bool = False, llm_provider: str = None, config_path: str = None):
         """
         Initialize the prompt enhancer.
         
         Args:
             use_embeddings: Whether to use sentence embeddings for better analysis.
-            llm_provider: 'openai', 'mistral', or None to use template-based enhancement.
+            llm_provider: 'openai', 'mistral', 'google, or None to use template-based enhancement.
+            config_path: Path to custom template config file.
         """
         self.parser = PromptParser(use_embeddings=use_embeddings)
         self.classifier = PromptClassifier(use_embeddings=use_embeddings)
         self.use_embeddings = use_embeddings
         self.llm_provider = llm_provider
         self.llm_client = None
+        
+        from prompt_enhancer.config import TemplateManager
+        self.template_manager = TemplateManager(config_path)
         
         if llm_provider:
              from prompt_enhancer.llm import LLMClient
@@ -213,10 +118,8 @@ Requirements:
     ) -> str:
         """Apply a structured template based on prompt type."""
         
-        template = self.ENHANCEMENT_TEMPLATES.get(
-            classification.primary_type,
-            self.ENHANCEMENT_TEMPLATES[PromptType.UNKNOWN]
-        )
+        # Get template from manager
+        template = self.template_manager.get_template(classification.primary_type.value)
         
         # Prepare context string
         if parsed.context:
